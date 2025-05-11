@@ -258,4 +258,54 @@ A self‐contained, battery-powered camera system on Raspberry Pi 2 W (Ubuntu 22
 
 ---
 
-*End of Specification v10*  
+## Software Requirements (Camera)
+
+### SW-FUNC-008 – High-Speed Image Capture via libcamera
+**Category:** Functional  
+**Description:**  
+The Raspberry Pi camera system shall support high-speed image capture using the libcamera library (C/C++ API). This feature allows capturing images at the maximum frame rate supported by the camera sensor (e.g., enabling a burst mode or high-FPS video stream). The implementation shall leverage libcamera’s capabilities for efficient sensor configuration and buffer management to minimize capture latency and processing overhead. Captured images in high-speed mode shall be saved in RAW (DNG) format, including relevant image metadata (e.g., timestamps, exposure settings), to preserve full image quality for subsequent processing.
+
+**Acceptance Criteria:**  
+1. When high-speed capture mode is activated (via a designated command or setting), the system captures images at a sustained high frame rate (e.g., **≥ 30 FPS at full sensor resolution**, or higher at lower resolutions) without dropping frames under normal operating conditions.  
+2. In testing, the camera successfully captures a rapid sequence of images (for example, a burst of 100 images or a continuous 5-second capture) and stores each frame as a RAW DNG file. All captured files are verified to be intact (not corrupted) and contain correct metadata (such as unique timestamps and correct exposure information for each frame).  
+3. The system remains stable during and after high-speed capture. After completing a high-speed capture session, allocated resources (camera handles, buffer memory) are released or reused properly, and the camera is ready to accept new commands without requiring a restart.
+
+---
+
+### SW-FUNC-009 – RAW Image Conversion to 16-bit Grayscale
+**Category:** Functional  
+**Description:**  
+The camera software shall convert each captured RAW image (in DNG format) into a 16-bit grayscale image using the LibRaw library for RAW decoding and OpenCV (C interface) for image processing. This conversion shall produce a single-channel grayscale image that retains the full 16-bit per pixel depth (0–65535 intensity range) of the original data. The conversion process shall preserve important image metadata (e.g., timestamp, camera settings) by either embedding it in the output image’s header or by associating it within the system’s data structures. The resulting grayscale images will be used for further analysis or storage as needed by the system.
+
+**Acceptance Criteria:**  
+1. Given a RAW DNG image captured by the system, the software produces a corresponding 16-bit grayscale image (in memory or as a file, e.g., TIFF or PNG) using LibRaw and OpenCV. The output image’s resolution matches the input image, and it contains a single channel with 16-bit depth per pixel.  
+2. Testing with sample RAW inputs (e.g., images of a standardized test chart) confirms that the grayscale output accurately represents the brightness of the original scene. Bright regions in the RAW image translate to high pixel values in the grayscale output and dark regions translate to low values, with no unexpected distortion.  
+3. The output grayscale image retains or is linked to the original image’s metadata. For instance, a test can verify that the timestamp and exposure settings from the DNG file are either present in the grayscale image’s metadata or retrievable from the system’s logs/metadata records after conversion.  
+4. The conversion operation completes within a reasonable time on the Raspberry Pi (e.g., converting a full-resolution RAW image to grayscale in **under 2 seconds**). When converting multiple images in succession (e.g., a batch of 10 RAW images), the system performs all conversions without crashes or memory leaks.
+
+---
+
+### SW-FUNC-010 – Basic Image Post-Processing and Analysis
+**Category:** Functional  
+**Description:**  
+The camera system shall provide basic image post-processing and analysis capabilities on captured images using the OpenCV library (C interface). In particular, the software shall be able to apply thresholding to convert grayscale images into binary (black-and-white) images, and perform edge detection (e.g., using the Canny algorithm) to identify edges. These operations shall be configurable (allowing adjustment of threshold values or edge detection parameters) and executable on-demand—either automatically after capture or when triggered remotely. Implementation shall be optimized for near real-time performance on the Raspberry Pi.
+
+**Acceptance Criteria:**  
+1. When provided with a grayscale image, the system can apply a threshold operation to generate a binary image. Using a known test image, the thresholding function produces a binary result where all pixels above a chosen threshold are white and those below are black. The threshold level is configurable, and changing it affects the output as expected.  
+2. The system can perform edge detection on a given image and output an image highlighting the edges. Using a test image with distinct shapes (circles, squares, lines), the edge detection output (e.g., Canny) clearly outlines the shapes’ boundaries with minimal noise. Edge detection parameters (e.g., upper/lower hysteresis thresholds) are adjustable and verified through testing.  
+3. Both thresholding and edge detection processes execute efficiently on the Raspberry Pi. Processing a 640×480 image completes in **100 ms or less** on average. Users can capture an image and view processed results within a fraction of a second.  
+4. Under stress testing (e.g., 50 images processed in a loop), the system maintains consistent performance and memory usage. No crashes, memory leaks, or significant slowdowns occur.
+
+---
+
+### SW-FUNC-011 – Bluetooth Communication with Remote Unit
+**Category:** Functional  
+**Description:**  
+The Raspberry Pi camera system shall establish and manage a wireless communication link with the nRF52840-based remote unit via Bluetooth, using the BlueZ C library. The system shall support either Bluetooth Classic (RFCOMM) or BLE (GATT) as configured. This link will be used to receive remote commands (e.g., “capture photo”, change settings) and to send status updates (e.g., “capture complete”, error codes) and battery level information. The implementation shall handle connection setup, maintenance, and reconnection, ensuring reliable operation over a typical range (~10 m). When using BLE, standardized GATT services (e.g., Battery Service) shall be employed where applicable.
+
+**Acceptance Criteria:**  
+1. The camera system can pair with and connect to the remote unit. The pairing succeeds and a stable connection is maintained for at least **5 minutes** at 5–10 m range.  
+2. Upon receiving a capture command from the remote (via RFCOMM message or BLE GATT write), the camera initiates an image capture within **1 s**, and the remote receives a confirmation (e.g., LED blink or status message).  
+3. After command execution, the camera transmits a status update back to the remote. Status messages (e.g., “Capture Complete”, error codes) correspond accurately to the last command and are received without loss or reorder.  
+4. The camera system reads the remote’s battery level over Bluetooth. For BLE, it reads the Battery Level characteristic; for RFCOMM, it parses battery status messages. Battery readings (e.g., 100%, 50%, 20%) match the remote’s actual battery state and update upon reconnection and at least every **1 minute** during an active session.  
+5. The system detects link loss within a few seconds if the remote goes out of range, logs an appropriate message, and automatically reconnects when the remote returns in range. All Bluetooth operations execute without crashes or memory leaks during prolonged testing (e.g., 1 hour continuous operation).  
