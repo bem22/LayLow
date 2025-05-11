@@ -1,4 +1,4 @@
-# Camera System Requirements Specification (v10)  
+# Camera System Requirements Specification (v11)  
 **Date:** May 8, 2025
 
 *(Updated to include remote battery reporting and DFU transport guidance)*
