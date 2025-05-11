@@ -1,9 +1,9 @@
-// src/common.h
+
 #ifndef COMMON_H
 #define COMMON_H
 
 #include <stdint.h>
-
+#include <stddef.h>  
 // libcamera capture
 int capture_init(void);
 int capture_frame_raw(const char *out_path);
