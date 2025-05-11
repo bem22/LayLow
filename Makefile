@@ -1,5 +1,6 @@
 CC      = gcc
-CFLAGS  = -I/usr/include/libraw -I/usr/include/libpng -I/usr/include/libcamera \
+CFLAGS  = -I/usr/include/libpng \
+          -I/usr/include/libcamera \
           -pthread
 LDFLAGS = -lraw -lpng -lcamera -lbluetooth -lpthread
 
