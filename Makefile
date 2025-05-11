@@ -1,15 +1,16 @@
-CC       = gcc
-CFLAGS   = -I/usr/include/libcamera -I/usr/include/libraw \
-           -I/usr/include/opencv4 -I/usr/include/bluetooth -pthread
-LDFLAGS  = -lcamera -lraw -lopencv_core -lopencv_imgproc \
-           -lbluetooth -lpthread
+CC      = gcc
+CFLAGS  = -I/usr/include/libraw -I/usr/include/libpng -I/usr/include/libcamera \
+          -pthread
+LDFLAGS = -lraw -lpng -lcamera -lbluetooth -lpthread
 
-# All of your .c files
-SRC      = src/main.c src/capture.c src/raw2gray.c \
-           src/analysis.c src/bt_control.c
-TARGET   = rem_cam
+# sources
+SRC     = src/main.c \
+          src/capture.c \
+          src/raw2gray.c \
+          src/analysis.c \
+          src/bt_control.c
 
-.PHONY: all clean
+TARGET  = rem_cam
 
 all: $(TARGET)
 
