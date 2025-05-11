@@ -309,3 +309,55 @@ The Raspberry Pi camera system shall establish and manage a wireless communicati
 3. After command execution, the camera transmits a status update back to the remote. Status messages (e.g., “Capture Complete”, error codes) correspond accurately to the last command and are received without loss or reorder.  
 4. The camera system reads the remote’s battery level over Bluetooth. For BLE, it reads the Battery Level characteristic; for RFCOMM, it parses battery status messages. Battery readings (e.g., 100%, 50%, 20%) match the remote’s actual battery state and update upon reconnection and at least every **1 minute** during an active session.  
 5. The system detects link loss within a few seconds if the remote goes out of range, logs an appropriate message, and automatically reconnects when the remote returns in range. All Bluetooth operations execute without crashes or memory leaks during prolonged testing (e.g., 1 hour continuous operation).  
+
+### SW-FUNC-012 – Background Service & Multithreading  
+**Category:** Functional  
+**Description:**  
+The camera application shall run as a background daemon on the Raspberry Pi and use POSIX threads to handle concurrent tasks. At minimum, there shall be:  
+1. A **Bluetooth worker** thread that listens for and processes remote commands.  
+2. A **Capture worker** thread that handles image capture, conversion, analysis, and metadata writing.  
+3. A **Main/Coordinator** thread that dispatches incoming commands to the appropriate worker and manages mode state.  
+
+**Acceptance Criteria:**  
+1. On startup, the program daemonizes (forks to background, detaches from terminal) and spawns the Bluetooth worker, Capture worker, and Coordinator threads.  
+2. Each thread reports its health/status at least once per minute via the system log (`/var/log/synapse-shot.log`).  
+3. If any worker thread crashes or deadlocks, the Coordinator detects this within 5 s and restarts the failed thread automatically, logging the event.  
+4. CPU and memory usage remain within expected bounds (e.g., total RAM < 50 MB, CPU usage < 15 % when idle).
+
+---
+
+### SW-FUNC-013 – Single-Take Mode (BT-Triggered Snapshot)  
+**Category:** Functional  
+**Description:**  
+In **Single-Take** mode, the application idles until it receives a “single” capture command from the remote over Bluetooth. Upon receipt, the Capture worker shall:  
+1. Capture one RAW (DNG) frame.  
+2. Convert it to 16-bit grayscale.  
+3. Run configured analyses (threshold & edge detection).  
+4. Write both raw & processed images and metadata JSON.  
+5. Notify the remote of completion via Bluetooth.
+
+**Acceptance Criteria:**  
+1. On “single” command, the end-to-end workflow (capture → convert → analyze → metadata → notify) completes in ≤ 3 s.  
+2. Metadata JSON includes timestamps for each sub-step, mode identifier (`single`), and configuration values used.  
+3. After completion, the application returns to idle and listens for the next BT command.  
+4. If an error occurs at any stage, the Capture worker aborts the current job, logs the error, and sends an error status back to the remote; then returns to idle.
+
+---
+
+### SW-FUNC-014 – Timelapse Mode (Configurable Interval & Sampling)  
+**Category:** Functional  
+**Description:**  
+In **Timelapse** mode, triggered by a special BT command, the application repeatedly captures and processes images at a configurable interval (`T_full` seconds) and additionally captures one RAW frame every `N` full‐resolution captures (`N ≥ 1`). The Capture worker shall:  
+1. On mode entry, read `T_full` and `N` from the configuration.  
+2. Every `T_full` seconds, capture a JPEG (or equivalent processed image) and run analysis.  
+3. Every Nth interval, also capture and store a RAW (DNG) + 16-bit grayscale + analysis + metadata.  
+4. Continue until a BT “stop timelapse” command is received.
+
+**Acceptance Criteria:**  
+1. The interval between successive full-res captures is maintained to within ± 100 ms of `T_full`.  
+2. The ratio of JPEG‐only captures to RAW captures is exactly `N−1` to 1 (e.g., RAW every 10th if N=10).  
+3. Each capture (JPEG or RAW) has a metadata JSON record indicating mode (`timelapse`), sequence number, and whether RAW was captured.  
+4. On receiving “stop timelapse,” the application stops scheduling new captures within 1 s and sends a summary status (total captures, RAW count) back to the remote.  
+5. The application can re-enter Timelapse mode multiple times in one session without restart, each time using updated configuration if provided.
+
+---
