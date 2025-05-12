@@ -146,7 +146,8 @@ chmod +x scripts/run_tests.sh
 
 ---
 
-## Hardware (“Laylow” Carrier)
+## The LayLow hardware - not a trademark
+![laylowbro](https://github.com/user-attachments/assets/46276b95-ba32-47db-a112-b3d0768fbf81)
 
 “Laylow” is the custom carrier board and enclosure that transform a Raspberry Pi Zero 2 W into a self-contained camera unit.
 
