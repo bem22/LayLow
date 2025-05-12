@@ -1,17 +1,18 @@
-CC      = gcc
-CFLAGS  = -I/usr/include/libpng \
-          -I/usr/include/libcamera \
-          -pthread
-LDFLAGS = -lraw -lpng -lcamera -lbluetooth -lpthread
+CC      := gcc
+CFLAGS  := -I/usr/local/include \
+           -I/usr/local/include/libraw \
+           -I/usr/include/libpng \
+           -I/usr/include/libcamera \
+           -pthread
+LDFLAGS := -L/usr/local/lib -lraw -lpng -lcamera -lpthread
 
-# sources
-SRC     = src/main.c \
-          src/capture.c \
-          src/raw2gray.c \
-          src/analysis.c \
-          src/bt_control.c
+SRC     := src/main.c \
+           src/capture.c \
+           src/raw2gray.c \
+           src/analysis.c \
+           src/datastructures/heap.c
 
-TARGET  = rem_cam
+TARGET  := rem_cam
 
 all: $(TARGET)
 
