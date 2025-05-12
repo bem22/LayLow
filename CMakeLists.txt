@@ -24,6 +24,9 @@ if(NOT ALL_SOURCES)
   message(FATAL_ERROR "No source files found in src/")
 endif()
 
+file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/data/captures)
+file(MAKE_DIRECTORY ${PROJECT_SOURCE_DIR}/data/metadata)
+
 # Executable target with every .c file
 add_executable(synapse_shot ${ALL_SOURCES})
 

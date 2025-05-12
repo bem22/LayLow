@@ -4,6 +4,14 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 INCL="-I${ROOT}/include"
 
+# ensure data dirs exist so tests that write metadata won't error
+mkdir -p "${ROOT}/data/captures" "${ROOT}/data/metadata"
+
+# now make and cd into build/tests
+BUILD="${ROOT}/build/tests"
+mkdir -p "$BUILD"
+cd "$BUILD"
+
 # Sources
 SRC_RAW2GRAY="${ROOT}/src/image-processing/raw2gray.c"
 SRC_ANALYSIS="${ROOT}/src/image-processing/analysis.c"
