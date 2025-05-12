@@ -5,7 +5,7 @@
 **Synapse Shot** is a lightweight C application for converting raw camera files to 16-bit grayscale images and analyzing them to report the brightest pixels. It supports both processing existing files (static mode) and live capture on Raspberry Pi (dynamic mode).
 
 ---
-See ![SRS document](https://github.com/bem22/LayLow/blob/develop/SRS.md)
+### See [SRS document](https://github.com/bem22/LayLow/blob/develop/SRS.md)
 
 ## Features
 
