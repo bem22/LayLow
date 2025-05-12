@@ -51,6 +51,7 @@ make -j\$(nproc)
 ---
 
 ## Usage
+[Screencast from 2025-05-12 16-17-43.webm](https://github.com/user-attachments/assets/baaca7b6-6646-4411-83d7-9bcca35aa8b7)
 
 > All commands assume you’re in the project root (where \`data/\` resides).
 
