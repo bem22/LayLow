@@ -51,7 +51,7 @@
 
 ## 1. Introduction
 A self‐contained, battery-powered camera system on Raspberry Pi 2 W (Ubuntu 22.04) paired with an nRF52840-based Bluetooth remote (Zephyr RTOS), that:
-- **Camera (“Synapse-Shot”)**
+- **Camera (“Synapse-Shot”) + "LayLow"**
   - Joins an existing LAN via Wi-Fi
   - Hosts a Node.js web interface for capture control and status
   - Captures 720p images (JPEG + DNG RAW) with rolling-shutter metadata
