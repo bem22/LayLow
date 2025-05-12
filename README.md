@@ -1,3 +1,5 @@
+![laylowbro png2](https://github.com/user-attachments/assets/0424781e-94b8-422b-a442-c3358c5af60c)
+
 # Synapse Shot
 
 **Synapse Shot** is a lightweight C application for converting raw camera files to 16-bit grayscale images and analyzing them to report the brightest pixels. It supports both processing existing files (static mode) and live capture on Raspberry Pi (dynamic mode).
@@ -146,8 +148,7 @@ chmod +x scripts/run_tests.sh
 
 ---
 
-## The LayLow hardware - not a trademark
-![laylowbro](https://github.com/user-attachments/assets/46276b95-ba32-47db-a112-b3d0768fbf81)
+## The LayLow Hardware
 
 “Laylow” is the custom carrier board and enclosure that transform a Raspberry Pi Zero 2 W into a self-contained camera unit.
 
