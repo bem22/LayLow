@@ -69,9 +69,10 @@ static int make_paths(const char *mode,
         char timestamp[32];
         strftime(timestamp, sizeof timestamp, "%Y%m%d_%H%M%S", &tm);
 
+        // name and path under data/captures
         snprintf(base, PATH_MAX, "capture_%s", timestamp);
-        // dynamic raw goes into resolved_outdir
-        snprintf(raw_path, PATH_MAX, "%s/%s.dng", resolved_outdir, base);
+        snprintf(raw_path, PATH_MAX,
+                 DATADIR "/captures/%s.dng", base);
     }
     else {
         return -1;
