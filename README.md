@@ -24,10 +24,13 @@ sudo apt install build-essential cmake pkg-config libraw-dev libpng-dev
 ```
 
 ### Raspberry Pi OS (Zero 2 W)
+
 ```bash
 sudo apt update
 sudo apt install build-essential cmake pkg-config libraw-dev libpng-dev libcamera-tools
 ```
+
+---
 
 ## Build Instructions
 
@@ -37,13 +40,16 @@ cd synapse-shot
 
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
-make -j$(nproc)
+make -j\$(nproc)
 ```
 
-> Binaries will be in build/: synapse_shot
+> Binaries will be in \`build/\`: \`synapse_shot\`
+
+---
 
 ## Usage
-> All commands assume you’re in the project root (where data/ resides).
+
+> All commands assume you’re in the project root (where \`data/\` resides).
 
 ### Common Options
 
@@ -58,42 +64,53 @@ Usage: synapse_shot --mode (static|dynamic) [--input <file>] --outdir <dir>
 ```
 
 #### 1. Static Mode
+
 Process existing captures:
+
 ```bash
 # Random file from data/captures/
 ./synapse_shot --mode static --outdir data/metadata
 
 # Specific file
-./synapse_shot --mode static \
-    --input data/captures/sample.dng \
-    --outdir data/metadata
+./synapse_shot --mode static     --input data/captures/sample.dng     --outdir data/metadata
 ```
 
-Outputs:
-* data/metadata/<base>_grayscale.png — 16-bit grayscale PNG
-* data/metadata/<base>_report.txt — Lines of x y value for the brightest pixels
+**Outputs**  
+- \`data/metadata/<base>_grayscale.png\` — 16-bit grayscale PNG  
+- \`data/metadata/<base>_report.txt\` — Lines of \`x y value\` for the brightest pixels  
 
 #### 2. Dynamic Mode (Pi Only)
+
 Capture and process in one step:
-```bash 
+
+```bash
 ./synapse_shot --mode dynamic --outdir data/metadata
 ```
-What happens:
-* Captures a raw DNG into data/captures/capture_<timestamp>.dng.
-* Converts to grayscale.
-* Finds top-50 brightest pixels.
-* Writes grayscale PNG & report TXT into data/metadata/.
+
+**What happens:**  
+1. Captures a raw DNG into  
+   \`data/captures/capture_<timestamp>.dng\`  
+2. Converts to grayscale.  
+3. Finds top-50 brightest pixels.  
+4. Writes grayscale PNG & report TXT into \`data/metadata/\`.
+
+---
 
 ### Viewing Results
-* 16-bit PNG: Use an image viewer that supports 16-bit (e.g., display from ImageMagick).
-* Report: Plain text; each line: x y value
+
+- **16-bit PNG**: Use an image viewer that supports 16-bit (e.g. ImageMagick’s \`display\`).  
+- **Report**: Plain text; each line: \`x y value\`  
 
 Convert to 8-bit for quick preview:
+
 ```bash
-convert -depth 16 data/metadata/<base>_grayscale.png -normalize out8.png
+convert -depth 16     data/metadata/<base>_grayscale.png     -normalize out8.png
 ```
 
+---
+
 ### Directory Layout
+
 ```bash
 synapse-shot/
 ├── CMakeLists.txt
@@ -102,27 +119,70 @@ synapse-shot/
 │   └── metadata/    # output PNGs & reports
 ├── include/         # public headers
 ├── src/             # source code
+├── tests/           # unit & integration tests
 ├── build/           # out-of-source build
 └── README.md
 ```
 
-### Compile & run tests
-Add this to your build script (or run manually):
+---
+
+### Compile & Run Tests
+
 ```bash
-gcc -Iinclude tests/test_raw2gray.c src/image-processing/raw2gray.c \
-    -lraw -lpng -lm -o test_raw2gray
+# raw2gray + heap analysis
+gcc -Iinclude tests/test_raw2gray.c src/image-processing/raw2gray.c     -lraw -lpng -lm -o test_raw2gray
 ./test_raw2gray
 
-gcc -Iinclude tests/test_analysis.c src/image-processing/analysis.c \
-    src/datastructures/heap.c -o test_analysis
+gcc -Iinclude tests/test_analysis.c     src/image-processing/analysis.c src/datastructures/heap.c     -o test_analysis
 ./test_analysis
 ```
 
-### Troubleshooting
-* “failed to load RAW data” → check the file path and extension.
-* Dynamic mode errors → ensure libcamera-tools is installed and camera enabled (on Pi).
-* No camera detected → verify /boot/config.txt has start_x=1, appropriate dtoverlay.
-* Missing CLI → install libcamera-tools or use the provided v4l2-ctl fallback.
+Or run the provided script:
 
-### License
-MIT License. See LICENSE for details.
+```bash
+chmod +x scripts/run_tests.sh
+./scripts/run_tests.sh
+```
+
+---
+
+## Hardware (“Laylow” Carrier)
+
+“Laylow” is the custom carrier board and enclosure that transform a Raspberry Pi Zero 2 W into a self-contained camera unit.
+
+### Bill of Materials
+
+| Qty | Item                                            | Notes                                        |
+|-----|-------------------------------------------------|----------------------------------------------|
+| 1   | Raspberry Pi Zero 2 W                           | SBC core                                     |
+| 1   | LiPo battery (IKEA VARMFRONT 5200 mAh)          | Power source                                 |
+| 1   | BMS board (IKEA VARMFRONT 5200 mAh)             | Integrated charger & protection              |
+| 1   | Battery-to-BMS cable                            | JST connector                                |
+| 1   | Raspberry Pi Camera V2 (Sony IMX219, 8 MP)      | CSI-2 module                                 |
+| 1   | Camera ribbon cable                             | 15-pin FFC                                   |
+| 1   | Enclosure top piece                             | 3D-printed PLA                               |
+| 1   | Enclosure bottom piece                          | 3D-printed PLA                               |
+| 1   | Enclosure shell                                 | Snap-fit assembly                            |
+| 1   | microSD card (≥ 16 GB)                          | OS & data storage                            |
+
+### Key Interfaces
+
+- **Power**: USB-C input → BMS → LiPo → boost converter → 5 V rail  
+- **Camera**: CSI ribbon → Pi camera connector  
+- **Status LED**: GPIO → transistor → LED for success/failure feedback  
+- **User Button**: GPIO → tactile switch for manual capture trigger  
+- **USB-OTG**: Pi USB-C port for serial debug or data access  
+
+---
+
+## Troubleshooting
+
+- **“failed to load RAW data”** → Verify `--input` path and file extension.  
+- **Dynamic mode errors** → Ensure `libcamera-tools` is installed and camera enabled (`/boot/config.txt` has `start_x=1`).  
+- **No camera detected** → Re-seat ribbon cable; check `vcgencmd get_camera`.  
+
+---
+
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.
